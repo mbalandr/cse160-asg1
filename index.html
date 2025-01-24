@@ -1,0 +1,341 @@
+<!--
+Mariah Balandran
+mbalandr@ucsc.edu
+
+Notes to Grader:
+I really like web development so I spent a good amount of time styling this page. Let me know if that's alright. I used ChatGPT the CSS in only a couple parts when I couldn't figure out what was going wrong. I wrote all the HTML myself or from referencing the instructor videos.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>WebGL Drawing Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        text-align: center;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1b1b2f, #2c1f4a);
+        font-family: 'Inter', sans-serif;
+        color: #ffffff;
+        min-height: 100vh;
+        padding-top: 1rem;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        margin-top: 1rem;
+        display: grid;
+        gap: 2rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: stretch;
+        grid-template-rows: auto 1fr;
+        min-height: calc(100vh - 4rem);
+      }
+
+      .header {
+        text-align: center;
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        background: -webkit-linear-gradient(#6a11cb, #2575fc);
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      img {
+        width: auto;
+        border-radius: 15px;
+        display: none;
+        margin-top: 2.5rem;
+        max-width: 100%;
+        max-height: 100%;
+      }
+
+      .canvas-container {
+        position: relative;
+        background: rgba(106, 17, 203, 0.05);;
+        border-radius: 20px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(106, 17, 203, 0.2);
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem; 
+        align-items: center;
+        margin-bottom: 2.75rem;
+      }
+
+      canvas {
+        display: block;
+        margin: 0 auto;
+        border-radius: 15px;
+        box-shadow: 0 0 50px rgba(106, 17, 203, 0.3);
+        background: #1a1a2e;
+        transition: box-shadow 0.3s ease;
+        flex-shrink: 0; /* Prevent canvas from shrinking */
+        max-width: 100%;
+        max-height: 400px;
+      }
+
+      canvas:hover {
+        box-shadow: 0 0 50px #2574fc86;
+      }
+
+      #numdot {
+        font-family: 'Monaco', monospace;
+        font-size: 0.9rem;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        display: inline-block;
+        margin-top: 1rem;
+        margin-bottom: -1rem;
+        border: 1px solid rgba(106, 17, 203, 0.2);
+        color: #a855f7;
+      }
+
+      .controls-container {
+        display: flex;
+        flex-direction: column;
+        grid-template-columns: auto 1fr;
+        gap: 1rem;
+        padding: 2.75rem;
+        background: rgba(106, 17, 203, 0.05);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(106, 17, 203, 0.2);
+        height: auto;
+        margin-bottom: 2.75rem;
+      }
+
+      .button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding-left: 1rem;
+        justify-content: center;
+      }
+
+      button {
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(106, 17, 203, 0.3);
+      }
+
+      .slider-container {
+        display: flex;
+        justify-content: space-around;
+        gap: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+        margin-left: 1.5rem;
+        padding-bottom: 1.5rem;
+        padding-left: 0rem;
+        padding-right: 0rem;
+      }
+
+      .slider-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(106, 17, 203, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(106, 17, 203, 0.2);
+        height: 300px;
+      }
+
+      .slider-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #d8b4fe;
+        writing-mode: horizontal-tb;
+        margin-bottom: 0.5rem;
+      }
+
+      .slider {
+        -webkit-appearance: none;
+        width: 6px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        outline: none;
+        writing-mode: bt-lr;
+        -webkit-appearance: slider-vertical;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        transition: all 0.2s ease;
+      }
+
+      .slider::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 20px rgba(106, 17, 203, 0.4);
+      }
+
+      .slider::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        transition: all 0.2s ease;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 1rem;
+        }
+
+        .container {
+          gap: 1rem;
+        }
+
+        canvas {
+          width: 100%;
+          height: auto;
+          max-width: 300px;
+        }
+
+        .controls-container {
+          grid-template-columns: 1fr;
+          padding: 1rem;
+        }
+
+        .button-group {
+          gap: 0.5rem;
+        }
+
+        button {
+          padding: 0.5rem 1rem;
+          font-size: 0.8rem;
+        }
+
+        .slider-container {
+          flex-direction: row;
+          flex-wrap: wrap;
+          height: auto;
+          gap: 1rem;
+        }
+
+        .slider-group {
+          height: 250px;
+          padding: 0.5rem;
+        }
+
+      }
+    </style>
+  </head>
+  <body onload="main()">
+
+    <button id="popup" title="Click to close">
+      <h2>Welcome to WebGL Drawing Studio!</h2>
+      <p>Click and drag to draw shapes. Use the sliders to adjust colors, size, and opacity. 
+         Hover over buttons to see what they do.</p>
+    </button>      
+
+    <div class="container">
+      <header class="header">
+        <h1>WebGL Drawing Studio</h1>
+      </header>
+
+      <div class="canvas-container">
+        <canvas id="webgl" width="400" height="400">
+          Please use a browser that supports "canvas"
+        </canvas>
+        <p id="numdot" title="Number of Dots on the Canvas, Milliseconds, and Frames/Second">numdot: 0 ms: 0 fps: 0</p>
+        <img id="ref-img" src="refernce.png" alt="Reference image of a vampire lady">
+      </div>
+
+      <div class="controls-container">
+        <div class="button-group">
+          <button type="button" id="green" title="Color with Green">Green</button>
+          <button type="button" id="red" title="Color with Red">Red</button>
+          <button type="button" id="clear" title="Clear the Canvas">Clear</button>
+          <button type="button" id="pt" title="Draw with Points">Point</button>
+          <button type="button" id="tri" title="Draw with Triangles">Triangle</button>
+          <button type="button" id="cl" title="Draw with Circles">Circle</button>
+          <button type="button" id="drawCat" title="Draw a Cat">Draw a Cat</button>
+          <button type="button" id="drawVamp" title="Draw a Vampire">Draw a Vampire</button>
+          <button type="button" id="ref" title="Open/Close Reference">Reference</button>
+        </div>
+
+        <br>
+
+        <div class="slider-container">
+          <div class="slider-group">
+            <span class="slider-label">Red</span>
+            <input type="range" min="0" max="100" value="100" class="slider" id="redSlide" orient="vertical" title="Control Red Value">
+          </div>
+          <div class="slider-group">
+            <span class="slider-label">Green</span>
+            <input type="range" min="0" max="100" value="100" class="slider" id="greenSlide" orient="vertical" title="Control Green Value">
+          </div>
+          <div class="slider-group">
+            <span class="slider-label">Blue</span>
+            <input type="range" min="0" max="100" value="100" class="slider" id="blueSlide" orient="vertical" title="Control Blue Value">
+          </div>
+          <div class="slider-group">
+            <span class="slider-label">Opacity</span>
+            <input type="range" min="1" max="100" value="100" class="slider" id="opSlide" orient="vertical" title="Control Opacity">
+          </div>
+          <div class="slider-group">
+            <span class="slider-label">Size</span>
+            <input type="range" min="5" max="40" value="5" class="slider" id="sizeSlide" orient="vertical" title="Control Size">
+          </div>
+          <div class="slider-group">
+            <span class="slider-label">Segments</span>
+            <input type="range" min="3" max="90" value="10" class="slider" id="segSlide" orient="vertical" title="Lower Segments for a Surprise!">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    
+    <script src="src/quad.js"></script>
+    <script src="src/circle.js"></script>
+    <script src="src/triangle.js"></script>
+    <script src="src/point.js"></script>
+    <script src="src/asg1.js"></script>
+  </body>
+</html>
